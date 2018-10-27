@@ -104,7 +104,7 @@ WARNING
         install_bundler_in_app
         build_bundler("development:test")
         post_bundler
-        create_database_yml
+        # create_database_yml
         install_binaries
         run_assets_precompile_rake_task
       end
@@ -691,6 +691,38 @@ WARNING
           env_vars["BUNDLER_LIB_PATH"]             = "#{bundler_path}" if ruby_version.ruby_version == "1.8.7"
           env_vars["BUNDLE_DISABLE_VERSION_CHECK"] = "true"
 
+          puts "<ls>"
+          puts run("apt-get update")
+          puts run("apt-get install sqlite3")
+          puts run("brew install -y libsqlite3-dev")
+          puts run("ls -la /usr/lib/x86_64-linux-gnu/libsqlite3*")
+
+          puts("#{yaml_include}")
+          puts run("ln -s /usr/lib/x86_64-linux-gnu/libsqlite3.so.0.8.6 /usr/lib/x86_64-linux-gnu/libsqlite3.so")                        # for sqlite3   make symbolic link
+          puts run("cp #{File.expand_path( "../../vendor/sqlite3.h", $PROGRAM_NAME )} #{yaml_include}")   # for sqlite3   prepare sqlite3.h
+          puts run("ls #{yaml_include}")
+          puts "#{build_path}"
+          puts run("ls #{build_path}")
+          puts run("ls #{build_path}/vendor/sqlite3/bin/sqlite3")
+
+          # puts run("ln -s /usr/lib/libsqlite3.so.0.8.6 #{build_path}/vendor/sqlite3/bin/libsqlite3.so")                        # for sqlite3   make symbolic link
+          # FileUtils.makedirs("#{build_path}/vendor/bundle/ruby/2.4.0/gems/sqlite3-1.3.13/ext/sqlite3")
+          # puts run("cp #{build_path}/sqlite3.h #{build_path}/vendor/bundle/ruby/2.4.0/gems/sqlite3-1.3.13/ext/sqlite3")   # for sqlite3   prepare sqlite3.h
+          # puts run("cp #{build_path}/sqlite3.h #{build_path}/vendor/sqlite3/bin/sqlite3") 
+          # puts run("cp #{build_path}/sqlite3.h #{build_path}/vendor/sqlite3/bin") 
+          # puts run("cp #{build_path}/sqlite3.h #{build_path}/vendor/ruby-2.4.5/bin")
+
+          FileUtils.makedirs("#{yaml_lib}")
+          puts run("ln -s /usr/lib/x86_64-linux-gnu/libsqlite3.so.0.8.6 #{yaml_lib}/libsqlite3.so") 
+          
+          FileUtils.makedirs("#{yaml_include}")  
+          FileUtils.cp("#{build_path}/sqlite3.h","#{yaml_include}")   # for sqlite3   prepare sqlite3.h                     # for sqlite3   make symbolic link
+          puts run("cp #{build_path}/sqlite3.h #{yaml_include}")   # for sqlite3   prepare sqlite3.h
+
+          puts run("gem install sqlite3 -v '1.3.13' -- --with-sqlite3-lib=#{build_path}/vendor/sqlite3/bin")
+          puts run("bundle config build.sqlite3 --with-sqlite3-lib=/usr/lib/x86_64-linux-gnu/")
+
+          puts "</ls>"
           puts "Running: #{bundle_command}"
           instrument "ruby.bundle_install" do
             bundle_time = Benchmark.realtime do
